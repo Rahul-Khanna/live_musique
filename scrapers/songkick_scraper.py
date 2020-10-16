@@ -1,10 +1,10 @@
 import scrapy
 import time
-
+from scraper.items import songkick
 
 class Songkick_Scraper(scrapy.Spider):
     name = "Songkick"
-    start_urls = [f'https://www.songkick.com/leaderboards/popular_artists?page={num}' for num in range(1, 11)]
+    start_urls = [f'https://www.songkick.com/leaderboards/popular_artists?page={num}' for num in range(1, 1)]
 
     download_delay = 1.25
     pages_processed = 0
@@ -14,11 +14,11 @@ class Songkick_Scraper(scrapy.Spider):
 
     def parse(self, response):
         Basic_web = 'https://www.songkick.com/'  # The basic web address for each artist in the Songkick
-        href_list = response.xpath("//td[class='name']/a/@href").extract()
+        href_list = response.xpath('//table/tbody/tr[class != "header"]/td[3]/a/@href').extract()
 
         for href in href_list:
 
-            req = scrapy.Request(url=Basic_web + href, meta={'id': self.rank, 'url': Basic_web + href},
+            req = scrapy.Request(url=Basic_web + href, meta={'rank': self.rank, 'url': Basic_web + href},
                                  callback=self.parse_artist_detail)
             self.rank += 1
             yield req
@@ -37,12 +37,10 @@ class Songkick_Scraper(scrapy.Spider):
         reviews = response.xpath(
             '//*[@id="artist-reviews"]/ul/li[class="review-container"]/div[class="review-content open"]/text()')
 
-
-
-        yield {
-            "name": name,
-            "ontour": on_tour,
-            "upcoming_concert": upcoming_concert,
-            "similar_artists": similar_artists,
-            "reviews": reviews,
-        }
+        item = songkick()
+        item['rank'] = response.meta['rank']
+        item['name'] = name
+        item['on_tour'] = on_tour
+        item['upcoming_concert'] = upcoming_concert
+        item['similar_artists'] = similar_artists
+        item['reviews'] = reviews
