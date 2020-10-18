@@ -6,10 +6,11 @@
 import scrapy
 
 
-class songkick(scrapy.Item):
+class songkick_artists(scrapy.Item):
     rank = scrapy.Field()
     name = scrapy.Field()
     on_tour = scrapy.Field()
+    often_played = scrapy.Field()
     upcoming_concert = scrapy.Field()
     similar_artists = scrapy.Field()
     reviews = scrapy.Field()
