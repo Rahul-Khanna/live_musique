@@ -1,10 +1,11 @@
 import scrapy
 import time
-from scraper.items import songkick
+from scraper.items import songkick_artists
+
 
 class Songkick_Scraper(scrapy.Spider):
     name = "Songkick"
-    start_urls = [f'https://www.songkick.com/leaderboards/popular_artists?page={num}' for num in range(1, 1)]
+    start_urls = [f'https://www.songkick.com/leaderboards/popular_artists?page={num}' for num in range(1, 11)]
 
     download_delay = 1.25
     pages_processed = 0
@@ -13,34 +14,65 @@ class Songkick_Scraper(scrapy.Spider):
         self.rank = 1  # for showing the ranking in songkick
 
     def parse(self, response):
-        Basic_web = 'https://www.songkick.com/'  # The basic web address for each artist in the Songkick
-        href_list = response.xpath('//table/tbody/tr[class != "header"]/td[3]/a/@href').extract()
+        Basic_web = 'https://www.songkick.com'  # The basic web address for each artist in the Songkick
+        href_list = response.css("div.leaderboard table tr a")  # Gets you all links from leaderboard
 
-        for href in href_list:
-
-            req = scrapy.Request(url=Basic_web + href, meta={'rank': self.rank, 'url': Basic_web + href},
+        for link in href_list:
+            cleaned_link = link.css("a::attr(href)").get()
+            req = scrapy.Request(url=Basic_web + cleaned_link,
+                                 meta={'rank': self.rank, 'url': Basic_web + cleaned_link},
                                  callback=self.parse_artist_detail)
             self.rank += 1
             yield req
             break
 
+
     def parse_artist_detail(self, response):
 
-        name = response.xpath('/html/body/div[6]/div[1]/div[2]/div[1]/h1/text()')
+        name = response.css(
+            'div.component div.artist-overview h1.image-padding::text').get()
 
-        on_tour = response.xpath('//div["class="col-8 primary artist-overview""]/ul/li[1]/strong/text()')
+        on_tour = response.css('div.component div.artist-overview ul li strong::text').get()
 
-        upcoming_concert = response.xpath('//li[class="calendar"]/text()')
+        upcoming_concert = response.css('div.component div.artist-overview ul li.calendar::text').get()
 
-        similar_artists = response.xpath('//div[class="component related-artists"]/ul/li/a/span/span[1]/text()')
+        often_played_result_list = []
+        often_played_list = response.css('div#artist-touring-stats ul li.stat')
+        for often_played in often_played_list:
+            filter_word = often_played.css('p.name::text').get()
+            if filter_word == 'Most played:':
+                city_list = often_played.css('li div.info ul li')
+                for city in city_list:
+                    often_played_result_list.append(city.css('li a span.truncated-long::text').get())
 
-        reviews = response.xpath(
-            '//*[@id="artist-reviews"]/ul/li[class="review-container"]/div[class="review-content open"]/text()')
 
-        item = songkick()
+
+        similar_artists_list = []
+        similar_artists_spans = response.css('div.related-artists ul li a.artist-info span.artist-details span.artist-name')
+        for similar_artists_span in similar_artists_spans:
+            similar_artists = similar_artists_span.css('span::text').get()
+            similar_artists_list.append(similar_artists)
+
+
+
+        reviews_result_list = []
+        reviews_lists = response.css('div#artist-reviews ul li.review-container')
+        for reviews in reviews_lists:
+            ps = reviews.css('li div.review-content p')
+            temp_text = ''
+            for p in ps:
+                p_content = p.css('p::text').get()
+                if p_content:
+                    temp_text += (p_content+'\n')
+            reviews_result_list.append(temp_text.strip())
+
+        item = songkick_artists()
         item['rank'] = response.meta['rank']
         item['name'] = name
         item['on_tour'] = on_tour
+        item['often_played'] = often_played_result_list
         item['upcoming_concert'] = upcoming_concert
-        item['similar_artists'] = similar_artists
-        item['reviews'] = reviews
+        item['similar_artists'] = similar_artists_list
+        item['reviews'] = reviews_result_list
+
+        yield item
