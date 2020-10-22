@@ -1,0 +1,198 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+#@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix dbo: <http://dbpedia.org/ontology/> .
+@prefix my_ns: <http://dsci558.org/rahul-zerui-project/> .
+
+# We have cycles in our graph, probably best to remove a link before creating
+# but maybe we don't need them
+# Does query performance change when matching against subject or objects
+
+
+### Awards we should grab
+# Grammy:
+# Album of the year
+# Song of the year
+
+# AMA:
+# Favorite Pop/Rock Male Artist
+# Favorite Pop/Rock Female Artist
+# Favorite Pop/Rock Band/Duo/Group
+# Favorite Pop/Rock Album
+# Favorite Soul/R&B Male Artist
+# Favorite Soul/R&B Female Artist
+# Favorite Soul/R&B Album
+# Favorite Country Male Artist
+# Favorite Country Female Artist
+# Favorite Country Band/Duo/Group
+# Favorite Country Album
+# Favorite Rap/Hip-Hop Artist
+# Favorite Rap/Hip-Hop Album
+
+# Billboard:
+# Top Artist
+# Top Male Artist
+# Top Female Artist
+# Top Billboard 200 Album
+# Top Hot 100 Song
+
+### Non-namespace classes we have to create:
+# dbo:RecordLabel
+#   * name
+# dbo:MusicGenre
+#   * name
+# schema:City
+#   * name
+
+#### Main Artist/Group Class ####
+my_ns:MusicalEntity a schema:Class ;
+    rdfs:subClassOf schema:MusicGroup ;
+    schema:name xsd:string ;
+    schema:alternateName xsd:string ;
+    foaf:gender xsd:string ;
+    dbo:genre dbo:MusicGenre ;
+    dbo:recordLabel dbo:RecordLabel ;
+    schema:track my_ns:Single ; # maybe not needed, only used to potentially simplify queries
+    schema:album my_ns:MusicAlbum ; # maybe not needed, only used to potentially simplify queries
+    schema:activeYearsStartYear xsd:gYear ;
+    my_ns:playsOftenIn schema:City ;
+    my_ns:isBand xsd:boolean ;
+    my_ns:songKickRank xsd:int ;
+    my_ns:grammyAward my_ns:MusicAward ; # maybe not needed, only used to potentially simplify queries
+    my_ns:billboardAward my_ns:MusicAward ; # maybe not needed, only used to potentially simplify queries
+    my_ns:amaAward my_ns:MusicAward ; # maybe not needed, only used to spotentially implify queries
+    my_ns:appearsOftenWith my_ns:CoMusicalEntity ; # really I would love this to be a property, and that property have an attribute -> not sure if that's possible
+    my_ns:associatedAct my_ns:MusicalEntity
+    my_ns:yearlyTouringData my_ns:YearlyTouringInformation ;
+    my_ns:songKickSimilarArtist my_ns:MusicalEntity ;
+    my_ns:liveReview my_ns:LiveReview . # maybe not needed, only used to potentially simplify queries
+
+#### New Properities for MusicalEntity Class ####
+my_ns:playsOftenIn a rdf:Property ;
+    rdfs:domain schema:MusicGroup ;
+    rdfs:range schema:Place .
+
+my_ns:isBand a rdf:Property ;
+    rdfs:domain schema:MusicGroup ;
+    rdfs:range xsd:boolean .
+
+my_ns:songKickRank a rdf:Property ;
+    rdfs:domain schema:MusicGroup ;
+    rdfs:range xsd:int .
+
+my_ns:grammyAward a rdf:Property ; # maybe not needed
+    rdfs:domain schema:MusicGroup ;
+    rdfs:domain schema:CreativeWork ;
+    rdfs:range my_ns:MusicAward .
+
+my_ns:billboardAward a rdf:Property ; # maybe not needed
+    rdfs:domain schema:MusicGroup ;
+    rdfs:domain schema:CreativeWork ;
+    rdfs:range my_ns:MusicAward .
+
+my_ns:amaAward a rdf:Property ; # maybe not needed
+    rdfs:domain schema:MusicGroup ;
+    rdfs:domain schema:CreativeWork ;
+    rdfs:range my_ns:MusicAward .
+
+my_ns:appearsOftenWith a rdf:Property ;
+    rdfs:domain schema:MusicGroup ;
+    rdfs:range my_ns:CoMusicalEntity .
+
+my_ns:associatedAct a rdf:Property ;
+    rdfs:domain schema:MusicGroup ;
+    rdfs:range my_ns:MusicalEntity .
+
+my_ns:yearlyTouringData a rdf:Property ;
+    rdfs:domain schema:MusicGroup ;
+    rdfs:range my_ns:YearlyTouringInformation .
+
+my_ns:songKickSimilarArtist a rdf:Property ;
+    rdfs:domain schema:MusicGroup ;
+    rdfs:range my_ns:MusicalEntity .
+
+my_ns:liveReview a rdf:Property ; # maybe not needed
+    rdfs:domain schema:MusicGroup ;
+    rdfs:range my_ns:LiveReview .
+
+### Supporting Classes ###
+
+my_ns:Single a schema:Class ;
+    rdfs:subClassOf schema:MusicRecording ;
+    schema:name xsd:string ;
+    schema:dateCreated schema:Date ;
+    schema:byArtist my_ns:MusicalEntity ;
+    my_ns:grammyAward my_ns:MusicAward ; # maybe not needed, only used to potentially simplify queries
+    my_ns:billboardAward my_ns:MusicAward ; # maybe not needed, only used to potentially simplify queries
+    my_ns:amaAward my_ns:MusicAward . # maybe not needed, only used to potentially simplify queries
+
+my_ns:MusicAlbum a schema:Class ;
+    rdfs:subClassOf schema:MusicAlbum ;
+    schema:name xsd:string ;
+    schema:dateCreated schema:Date ;
+    schema:byArtist my_ns:MusicalEntity ;
+    my_ns:grammyAward my_ns:MusicAward ; # maybe not needed, only used to potentially simplify queries
+    my_ns:billboardAward my_ns:MusicAward ; # maybe not needed, only used to potentially simplify queries
+    my_ns:amaAward my_ns:MusicAward . # maybe not needed, only used to potentially simplify queries
+
+my_ns:MusicAward a schema:Class ;
+    rdfs:subClassOf my_ns:MusicAward ;
+    schema:name xsd:string ;
+    dbo:classification xsd:string ;
+    dbo:award my_ns:Award ;
+    dbo:year xsd:gYear ;
+    my_ns:musicalEntity my_ns:MusicalEntity ;
+    my_ns:musicWork schema:CreativeWork .
+
+my_ns:CoMusicalEntity a schema:Class ;
+    rdfs:subClassOf schema:Thing ;
+    my_ns:musicalEntity my_ns:MusicalEntity ;
+    my_ns:coAppearanceCount xsd:int .
+
+my_ns:YearlyTouringInformation a schema:Class ;
+    rdfs:subClassOf schema:Thing ;
+    dbo:year xsd:gYear ;
+    my_ns:concertCount xsd:int .
+
+my_ns:BillboardTop100Entry a schema:Class ;
+    rdfs:subClassOf schema:Thing ;
+    dbo:date xsd:date ;
+    my_ns:musicalEntity my_ns:MusicalEntity ;
+    my_ns:musicWork schema:CreativeWork ;
+    dbo:rank xsd:string .
+
+
+my_ns:LiveReview a schema:Class
+    rdfs:subClassOf schema:Review ;
+    schema:reviewBody xsd:string ;
+    my_ns:musicalEntity my_ns:MusicalEntity ;
+    # fill out with live review features we will look to extract, some potential ideas:
+    # * price (cheap, expensive)
+    # * live music
+    # * instruments present
+    # * lyrics present
+    # * light show present
+    # * sentiment score
+    # * venue -> might need to be linked to KG entries
+    # * crowd quality
+    # * drinks present
+
+### Supporting Class New Properites ### 
+my_ns:musicalEntity a rdf:Property ;
+    rdfs:domain schema:Thing ;
+    rdfs:range my_ns:MusicalEntity .
+
+my_ns:musicWork a rdf:Property ;
+    rdfs:domain schema:Thing ;
+    rdfs:range my_ns:CreativeWork .
+
+my_ns:coAppearanceCount a rdf:Property ;
+    rdfs:domain schema:CoMusicalEntity ;
+    rdfs:range my_ns:int .
+
+my_ns:concertCount a rdf:Property ;
+    rdfs:domain schema:CoMusicalEntity ;
+    rdfs:range my_ns:int .
