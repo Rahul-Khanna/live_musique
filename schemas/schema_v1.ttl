@@ -1,6 +1,5 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-#@prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 @prefix schema: <http://schema.org/> .
@@ -138,6 +137,10 @@ my_ns:MusicAlbum a schema:Class ;
     my_ns:billboardAward my_ns:MusicAward ; # maybe not needed, only used to potentially simplify queries
     my_ns:amaAward my_ns:MusicAward . # maybe not needed, only used to potentially simplify queries
 
+### Used to both create Award Concept(Grammy for Album of the Year) ###
+### * name, classification
+### and Award Instance (Grammy for Album of the Year in 2011) ###
+### * award, year, MusicalEntity, musicWork
 my_ns:MusicAward a schema:Class ;
     rdfs:subClassOf my_ns:MusicAward ;
     schema:name xsd:string ;
