@@ -1,5 +1,7 @@
+# scrapy crawl Songkick -o ./output/songkick.jl -t jsonlines
+
+
 import scrapy
-import time
 from scraper.items import songkick_artists
 
 

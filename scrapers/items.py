@@ -15,3 +15,6 @@ class songkick_artists(scrapy.Item):
     similar_artists = scrapy.Field()
     reviews = scrapy.Field()
     pass
+
+class billboard_music(scrapy.Item):
+    ranking_info = scrapy.Field()
