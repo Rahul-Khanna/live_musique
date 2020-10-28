@@ -16,5 +16,17 @@ class songkick_artists(scrapy.Item):
     reviews = scrapy.Field()
     pass
 
-class billboard_music(scrapy.Item):
+
+class billboard_hot100(scrapy.Item):
+    date = scrapy.Field()
+    ranking_info = scrapy.Field()
+
+
+class billboard_top200(scrapy.Item):
+    date = scrapy.Field()
+    ranking_info = scrapy.Field()
+
+
+class billboard_top_artist_award(scrapy.Item):
+    gender = scrapy.Field()
     ranking_info = scrapy.Field()
