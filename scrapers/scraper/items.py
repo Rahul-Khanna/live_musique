@@ -30,3 +30,7 @@ class billboard_top200(scrapy.Item):
 class billboard_top_artist_award(scrapy.Item):
     gender = scrapy.Field()
     ranking_info = scrapy.Field()
+
+class grammys_award(scrapy.Item):
+    award_name = scrapy.Field()
+    info = scrapy.Field()
