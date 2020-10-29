@@ -1,4 +1,4 @@
-# scrapy crawl Songkick -o ./output/songkick.jl -t jsonlines
+# scrapy crawl Grammys -o ./output/Grammys.jl -t jsonlines
 
 
 import scrapy
