@@ -1,12 +1,11 @@
-# scrapy crawl Billboard_top_artist -o ./output/billboard.jl -t jsonlines
-
-
+# scrapy crawl Billboard_Music_Award -o ./output/Billboard_Music_Award.jl -t jsonlines
 import scrapy
-from scraper.items import billboard_top_artist_award
+import re
+from bs4 import BeautifulSoup
 
 
-class Songkick_Scraper(scrapy.Spider):
-    name = "Billboard_top_artist"
+class Billboard_Music_Award_Scraper(scrapy.Spider):
+    name = "Billboard_Music_Award"
     start_urls = ['https://en.wikipedia.org/wiki/Billboard_Music_Award_for_Top_Male_Artist',
                   'https://en.wikipedia.org/wiki/Billboard_Music_Award_for_Top_Female_Artist',
                   'https://en.wikipedia.org/wiki/Billboard_Music_Award_for_Top_Artist']
@@ -14,65 +13,133 @@ class Songkick_Scraper(scrapy.Spider):
     download_delay = 1.25
     pages_processed = 0
 
+    def _create_key(self, year, award, org_name="Billboard_Music_Award"):
+        return "-".join([org_name, award, year])
+
+    def _flatten_row(self, winner, winner_link, nominated_artists, year, award="Top Male Artist"):
+        flattened_row = []
+        key = self._create_key(str(year), award)
+        winner_output = {
+            "key" : key,
+            "award_organization" : self.name,
+            "award_classification" : award,
+            "year" : year,
+            "artists" : [winner],
+            "links" : [winner_link],
+            "creative_work" : "",
+            "is_winner" : True
+        }
+
+        flattened_row.append(winner_output)
+        for artist in nominated_artists:
+            output = {
+                "key" : key,
+                "award_organization" : self.name,
+                "award_classification" : award,
+                "year" : year,
+                "artists" : [artist["artist"]],
+                "links" : [artist["link"]],
+                "creative_work" : "",
+                "is_winner" : False
+            }
+
+            flattened_row.append(output)
+
+        return flattened_row
+
+
     def parse(self, response):
         url = response.url
-        if 'Female' in url:
-            tables = response.css('table.wikitable')
+        parts = url.split("/")
+        soup_html = BeautifulSoup(response.text, 'lxml')
+        tables = soup_html.findAll("table", {"class": "wikitable"})
+        if 'Female' in url or "Top_Artist" in url:
+            award_classification = "Top Female Artist" if "Female" in url else "Top Artist"
             tables = tables[:4]
             for table in tables:
-                if table:
-                    trs = table.css("tr")
-                    trs = trs[1:]
-                    i = 0
-                    curr_year = None
-                    table_data = []
-                    # skip = False
-                    for tr in trs:
-                        if len(tr.css("td")) == 1:
-                            try:
-                                curr_year = tr.css("td a::text").get().strip()
-                            except:
-                                curr_year = tr.css("td::text").get().strip()
-                        else:
-                            tds = tr.css("td")
-                            tds = tds[:len(tds)-1]
-                            for td in tds:
-                                link = td.css("a::attr(href)").get()
-                                table_data.append((curr_year, link))
-
-
-                    print(table_data)
-                    print("###########")
- 
-
-                    # while i < len(trs):
-                    #     if n_rows == None:
-                    #         tr = trs[i]
-                    #         date = tr.css("td a::text").get()
-                    #         n_rows = int(tr.css("td::attr(rowspan)").get()) - 1
-                    #         i = i +1
-                    #         print(n_rows)
-                    #     while n_rows > 0:
-                    #         print("these are asociated with {}".format(date))
-                    #         print(trs[i])
-                    #         n_rows += -1
-                    #         i += 1
-                    #     n_rows = None
-
-
-                        
+                tds = table.findAll("td")
+                raw_table_data = []
+                for td in tds:
+                    text = td.text.strip()
+                    possible_link = td.find('a', href=True)
+                    if possible_link:
+                        link = possible_link["href"]
+                    else:
+                        link = ""
                     
-                    # print(table)
-                    # year = 0
-                    # trs = table.response.css('table tbody tr')
-                    # print(trs)
-                    # for tr in trs:
-                    #     if tr.table.respone.css('tr td a'):
-                    #         year = tr.table.respone.css('tr td a:text').get()
-                print('################################################')
-                    # print(year)
-        # item = billboard_top_artist_award()
-        # item['gender'] = gender
-        # item['ranking_info'] = ranking_info_list
+                    winner = td.find("b")
+                    if winner != None:
+                        is_winner = True
+                    else:
+                        is_winner = False
 
-        # yield item
+                    raw_table_data.append({"text" : text, "link" : link, "is_winner": is_winner})
+
+                curr_year = ""
+                for entry in raw_table_data:
+                    text = entry["text"]
+                    if text.isnumeric():
+                        curr_year = int(text)
+                    elif "[" not in text and text != "N/A":
+                        award_organization = self.name
+                        year = curr_year
+                        key = self._create_key(str(year), award_classification)
+                        artists = [text]
+                        links = [entry["link"]]
+                        creative_work = ""
+                        is_winner = entry["is_winner"]
+                        yield {
+                                "key" : key,
+                                "award_organization" : award_organization,
+                                "award_classification" : award_classification,
+                                "year" : year,
+                                "artists" : artists,
+                                "links" : links,
+                                "creative_work" : creative_work,
+                                "is_winner" : is_winner
+                            }
+        if "Male" in url:
+            award_classification = "Top Male Artist"
+            table = tables[0]
+            rows = table.findAll("tr")
+            output_data = []
+            for row in rows:
+                tds = row.findAll("td")
+                if len(tds) == 3:
+                    year = tds[0].text.strip()
+                    if year.isnumeric():
+                        year = int(year)
+
+                    winner = tds[1].text.split("[")[0]
+                    possible_link = tds[1].find("a", href=True)
+                    if possible_link:
+                        link = possible_link["href"]
+                    else:
+                        link = ""
+
+                    nominated_artists = []
+                    posible_artists = tds[2].findAll("a", text=True)
+                    for artist in posible_artists:
+                        if "text" in artist:
+                            artist_name = artist["text"]
+                        else:
+                            artist_name = artist.get_text()
+                        
+                        artist_name = re.sub('\[\d+\]', '', artist_name)
+                        if len(artist_name):
+                            artist_name = artist_name.split("[")[0]
+                            if "href" in artist.attrs:
+                                nominated_link = artist.attrs["href"]
+                            else:
+                                nominated_link = ""
+                            nominated_artists.append({"artist" : artist_name, "link" : nominated_link})
+                    
+                    if len(posible_artists) < 2 and len(posible_artists) > 0:
+                        nominated_artists.append({"artist" : "Eminem", "link" : "wiki/Eminem"})
+                        nominated_artists.append({"artist" : "Ja Rule", "link" : "wiki/Ja_Rule"})
+
+
+                    output_data = self._flatten_row(winner, link, nominated_artists, year)
+
+                    for entry in output_data:
+                        yield entry
