@@ -7,26 +7,23 @@ from scraper.items import songkick_artists
 
 class Songkick_Scraper(scrapy.Spider):
     name = "Songkick"
-    start_urls = [f'https://www.songkick.com/leaderboards/popular_artists?page={num}' for num in range(1, 11)]
+    start_urls = [f'https://www.songkick.com/leaderboards/popular_artists?page={num}' for num in range(1, 2)]
 
     download_delay = 1.25
     pages_processed = 0
 
-    def __init__(self):
-        self.rank = 1  # for showing the ranking in songkick
-
     def parse(self, response):
         Basic_web = 'https://www.songkick.com'  # The basic web address for each artist in the Songkick
-        href_list = response.css("div.leaderboard table tr a")  # Gets you all links from leaderboard
-
+        href_list = response.css("div.leaderboard table tr")  # Gets you all links from leaderboard
+        href_list = href_list[1:]
         for link in href_list:
-            cleaned_link = link.css("a::attr(href)").get()
+            rank = link.css("tr td.index::text").get()
+            cleaned_link = link.css("tr a::attr(href)").get()
             req = scrapy.Request(url=Basic_web + cleaned_link,
-                                 meta={'rank': self.rank, 'url': Basic_web + cleaned_link},
+                                 meta={'rank': rank, 'url': Basic_web + cleaned_link},
                                  callback=self.parse_artist_detail)
-            self.rank += 1
             yield req
-            break
+
 
 
     def parse_artist_detail(self, response):
