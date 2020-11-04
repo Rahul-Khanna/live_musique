@@ -51,7 +51,7 @@ class Grammys_Scraper(scrapy.Spider):
                             nominees_song = a_s[len(a_s) - 2].css('a::text').get()
                             artist_list.append({'name': nominees, 'is_winner': False, 'year': year, 'song': nominees_song})
             item = grammys_award()
-            item['award_name'] = 'Song_of_the_Year'
+            item['award_name'] = 'Grammy_Award_for_Song_of_the_Year'
             item['info'] = artist_list
             yield item
         else:
@@ -87,6 +87,6 @@ class Grammys_Scraper(scrapy.Spider):
                         else:
                             artist_list.append({'name': artists, 'is_winner': False, 'year': year, 'song': song})
             item = grammys_award()
-            item['award_name'] = 'Album_of_the_Year'
+            item['award_name'] = 'Grammy_Award_for_Album_of_the_Year'
             item['info'] = artist_list
             yield item
