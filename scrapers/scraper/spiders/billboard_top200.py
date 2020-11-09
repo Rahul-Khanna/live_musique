@@ -1,4 +1,4 @@
-# scrapy crawl Billboard_top200 -o ./output/Billboard_top200.jl -t jsonlines
+# scrapy crawl Billboard_top_200 -o ./output/Billboard_top200.jl -t jsonlines
 
 import scrapy
 import time
@@ -31,21 +31,11 @@ class Billboard_Top_200_Scraper(scrapy.Spider):
             song = li.css('li button span.chart-element__information span.chart-element__information__song::text').get()
             artist = li.css(
                 'li button span.chart-element__information span.chart-element__information__artist::text').get()
-            ranking_info_list.append({'rank': rank, 'song': song, 'artist': artist,'date':curr_week_str})
-
-
-
-        item = billboard_top200()
-        item['date'] = curr_week_str
-        item['ranking_info'] = ranking_info_list
-
-        yield item
-
-
+            yield {'rank': rank, 'song': song, 'artist': artist, 'date': curr_week_str}
 
         new_week = curr_week_dt + datetime.timedelta(days=7)
         base_url = ''
-        for i in range(len(parts)-1):
+        for i in range(len(parts) - 1):
             base_url += (parts[i] + '/')
         if new_week <= today:
             new_week_str = str(new_week)

@@ -1,4 +1,4 @@
-# scrapy crawl Billboard_hot100 -o ./output/Billboard_hot100.jl -t jsonlines
+# scrapy crawl Billboard_hot_100 -o ./output/Billboard_hot100.jl -t jsonlines
 
 
 import scrapy
@@ -31,15 +31,7 @@ class Billboard_hot100_Scraper(scrapy.Spider):
             song = li.css('li button span.chart-element__information span.chart-element__information__song::text').get()
             artist = li.css(
                 'li button span.chart-element__information span.chart-element__information__artist::text').get()
-            ranking_info_list.append({'rank': rank, 'song': song, 'artist': artist,'date':curr_week_str})
-
-
-
-        item = billboard_hot100()
-        item['date'] = curr_week_str
-        item['ranking_info'] = ranking_info_list
-
-        yield item
+            yield {'rank': rank, 'song': song, 'artist': artist,'date':curr_week_str}
 
 
 

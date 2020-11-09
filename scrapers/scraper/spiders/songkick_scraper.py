@@ -2,6 +2,7 @@
 
 import scrapy
 from scraper.items import songkick_artists
+from bs4 import BeautifulSoup
 
 
 class Songkick_Scraper(scrapy.Spider):
@@ -11,6 +12,12 @@ class Songkick_Scraper(scrapy.Spider):
     download_delay = 1.25
     pages_processed = 0
 
+    def get_text(self, html_object):
+        if "text" in html_object:
+            return html_object["text"].strip()
+        else:
+            return html_object.get_text().strip()
+
     def parse(self, response):
         Basic_web = 'https://www.songkick.com'  # The basic web address for each artist in the Songkick
         href_list = response.css("div.leaderboard table tr")  # Gets you all links from leaderboard
@@ -18,9 +25,11 @@ class Songkick_Scraper(scrapy.Spider):
         for link in href_list:
             rank = link.css("tr td.index::text").get()
             cleaned_link = link.css("tr a::attr(href)").get()
-            html_object_list = link.css('tr td.count').get().split()
+            soup_html = BeautifulSoup(link.css('tr td.count').get(), 'lxml')
+            html_object_list = self.get_text(soup_html)
+            fan_num = int(html_object_list.split(':')[1].replace(',', '').strip())
             req = scrapy.Request(url=Basic_web + cleaned_link,
-                                 meta={'rank': rank, 'url': Basic_web + cleaned_link, 'fan_num': html_object_list[-2]},
+                                 meta={'rank': rank, 'url': Basic_web + cleaned_link, 'fan_num': fan_num},
                                  callback=self.parse_artist_detail)
             yield req
 
@@ -43,19 +52,37 @@ class Songkick_Scraper(scrapy.Spider):
             filter_word = often_played.css('p.name::text').get()
 
             if filter_word == 'Most played:':
+                # most played part
                 city_list = often_played.css('li div.info ul li')
                 for city in city_list:
                     if 'us' in city.css('li a::attr(href)').get():
                         # checking US base or not
                         US_base = True
-                    often_played_result_list.append(city.css('li a span.truncated-long::text').get())
+                    city_name = city.css('li a span.truncated-long::text').get()
+
+                    # get the num of having show in that city
+                    soup_html_city = BeautifulSoup(city.css('li').get(), 'lxml')
+                    text = self.get_text(soup_html_city)
+                    text_list = text.split('(')
+                    num_of_city_final = int(text_list[-1].replace(')',""))
+                    often_played_result_list.append((city_name, num_of_city_final))
 
             elif filter_word == 'Appears most with:':
+                # Appears most with: part
                 often_played_with = often_played.css('li div.info ul li')
+
                 for artist in often_played_with:
-                    often_played_with_list.append(artist.css('li a span.truncated-long::text').get())
+                    artist_name = artist.css('li a span.truncated-long::text').get().strip()
+                    artist_url = 'https://www.songkick.com' + artist.css('li a::attr(href)').get()
+                    # get the num of play with certain artist
+                    soup_html_city = BeautifulSoup(artist.css('li').get(), 'lxml')
+                    text = self.get_text(soup_html_city)
+                    text_list = text.split('(')
+                    num_of_play_with_final = int(text_list[-1].replace(')', ""))
+                    often_played_with_list.append((artist_name, artist_url, num_of_play_with_final))
 
             elif filter_word == 'Touring history':
+                # Touring history part
                 trs = often_played.css('li table tr')
                 for tr in trs:
                     history_year = tr.css('tr td.touring-year::text').get()
@@ -67,11 +94,11 @@ class Songkick_Scraper(scrapy.Spider):
                         touring_history[2020] = int(num_of_concert_list[0].strip())
 
         similar_artists_list = []
-        similar_artists_spans = response.css(
-            'div.related-artists ul li a.artist-info span.artist-details span.artist-name')
-        for similar_artists_span in similar_artists_spans:
-            similar_artists = similar_artists_span.css('span::text').get()
-            similar_artists_list.append(similar_artists)
+        lis = response.css('div.related-artists ul li')
+        for li in lis:
+            similar_artists = li.css('li a.artist-info span.artist-details span.artist-name::text').get()
+            similar_artists_url = 'https://www.songkick.com/' + li.css('li a.artist-info::attr(href)').get()
+            similar_artists_list.append((similar_artists, similar_artists_url))
 
         reviews_result_list = []
         reviews_lists = response.css('div#artist-reviews ul li.review-container')
@@ -87,7 +114,7 @@ class Songkick_Scraper(scrapy.Spider):
 
         item = songkick_artists()
         item['rank'] = int(response.meta['rank'].strip())
-        item['name'] = name
+        item['name'] = name.strip()
         item['url'] = response.meta['url']
         item['on_tour'] = on_tour
         item['often_played'] = often_played_result_list
@@ -99,13 +126,8 @@ class Songkick_Scraper(scrapy.Spider):
 
         if int(response.meta['rank'].strip()) <= 2000:
             yield item
-        elif int(response.meta['fan_num'].replace(',', '')) >= 30000:
+        elif response.meta['fan_num'] >= 30000:
             if US_base and touring_history.keys():
                 if touring_history[2019] or touring_history[2020]:
                     yield item
-                else:
-                    yield None
-            else:
-                yield None
-        else:
-            yield None
+
