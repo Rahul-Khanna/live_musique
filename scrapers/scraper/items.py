@@ -9,12 +9,15 @@ import scrapy
 class songkick_artists(scrapy.Item):
     rank = scrapy.Field()
     name = scrapy.Field()
+    url = scrapy.Field()
     on_tour = scrapy.Field()
     often_played = scrapy.Field()
     upcoming_concert = scrapy.Field()
     similar_artists = scrapy.Field()
     reviews = scrapy.Field()
-    pass
+    often_played_with = scrapy.Field()
+    touring_history = scrapy.Field()
+
 
 
 class billboard_hot100(scrapy.Item):
