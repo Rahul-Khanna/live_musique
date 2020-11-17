@@ -23,8 +23,6 @@
 # Favorite Country Female Artist
 # Favorite Country Band/Duo/Group
 # Favorite Country Album
-# Favorite Rap/Hip-Hop Artist
-# Favorite Rap/Hip-Hop Album
 
 # Billboard:
 # Top Artist
@@ -34,28 +32,32 @@
 # Top Hot 100 Song
 
 ### Non-namespace classes we have to create:
-# dbo:RecordLabel
+# dbo:RecordLabel  #wikipedia
 #   * name
-# dbo:MusicGenre
+# dbo:MusicGenre #wikipedia
 #   * name
-# schema:City
+# schema:City #songkick
 #   * name
 
 #### Main Artist/Group Class ####
+# URI: wikipediaUrl
 my_ns:MusicalEntity a schema:Class ;
     rdfs:subClassOf schema:MusicGroup ;
-    schema:name xsd:string ;
-    schema:alternateName xsd:string ;
-    foaf:gender xsd:string ;
-    dbo:genre dbo:MusicGenre ;
-    dbo:recordLabel dbo:RecordLabel ;
-    schema:activeYearsStartYear xsd:gYear ;
-    my_ns:playsOftenIn schema:City ;
-    my_ns:isBand xsd:boolean ;
-    my_ns:songKickRank xsd:int ;
-    my_ns:appearsOftenWith my_ns:CoMusicalEntity ; # really I would love this to be a property, and that property have an attribute -> not sure if that's possible
-    my_ns:yearlyTouringData my_ns:YearlyTouringInformation ;
-    my_ns:similarAritst my_ns:MusicalEntity ;
+    schema:name xsd:string ; #songkick
+    schema:alternateName xsd:string ; #wikipedia
+    foaf:gender xsd:string ; #musicbrainz (sometimes it might not be there--that's okay) (mb_class)
+    dbo:genre dbo:MusicGenre ; #wikipedia
+    dbo:recordLabel dbo:RecordLabel ; #wikipedia
+    schema:activeYearsStartYear xsd:gYear ; #wikipedia
+    my_ns:playsOftenIn schema:City ; #songkick
+    my_ns:isBand xsd:boolean ; #musicbrainz (mb_class)
+    my_ns:songKickRank xsd:int ; #songkick
+    my_ns:appearsOftenWith my_ns:MusicalEntity ; #songkick (you will first have to create all artists, then loop again and for each pair create the two relations)
+    my_ns:yearlyTouringData my_ns:YearlyTouringInformation ; #songkick
+    my_ns:similarAritst my_ns:MusicalEntity ; #wikipedia
+    my_ns:songkickUrl xsd:string ; #songkick
+    my_ns:wikipediaUrl xsd:string ; #wikipedia
+    my_ns:musicBrainzId xsd:string . #musicbrainz
 
 #### New Properities for MusicalEntity Class ####
 my_ns:playsOftenIn a rdf:Property ;
@@ -72,7 +74,7 @@ my_ns:songKickRank a rdf:Property ;
 
 my_ns:appearsOftenWith a rdf:Property ;
     rdfs:domain schema:MusicGroup ;
-    rdfs:range my_ns:CoMusicalEntity .
+    rdfs:range my_ns:MusicalEntity .
 
 my_ns:associatedAct a rdf:Property ;
     rdfs:domain schema:MusicGroup ;
@@ -86,20 +88,35 @@ my_ns:similarAritst a rdf:Property ;
     rdfs:domain schema:MusicGroup ;
     rdfs:range my_ns:MusicalEntity .
 
+my_ns:songkickUrl a rdf:Property ;
+    rdfs:domain schema:Thing ;
+    rdfs:range xsd:string .
 
+my_ns:wikipediaUrl a rdf:Property ;
+    rdfs:domain schema:Thing ;
+    rdfs:range xsd:string .
+
+my_ns:musicBrainzId a rdf:Property ;
+    rdfs:domain schema:Thing ;
+    rdfs:range xsd:string .
 ### Supporting Classes ###
-
+# URI: musicBrainzId
 my_ns:Single a schema:Class ;
     rdfs:subClassOf schema:MusicRecording ;
-    schema:name xsd:string ;
-    schema:dateCreated schema:Date ;
+    schema:name xsd:string ; #musicbrainz
+    schema:dateCreated schema:Date ; #musicbrainz
     schema:byArtist my_ns:MusicalEntity ;
+    my_ns:wikipediaUrl xsd:string ;  # from award data (if there's a match)
+    my_ns:musicBrainzId xsd:string . #musicbrainz
 
+# URI: musicBrainzId
 my_ns:MusicAlbum a schema:Class ;
     rdfs:subClassOf schema:MusicAlbum ;
-    schema:name xsd:string ;
-    schema:dateCreated schema:Date ;
+    schema:name xsd:string ; #musicbrainz
+    schema:dateCreated schema:Date ; #musicbrainz
     schema:byArtist my_ns:MusicalEntity ;
+    my_ns:wikipediaUrl xsd:string ; # from award data (if there's a match)
+    my_ns:musicBrainzId xsd:string . #musicbrainz
 
 ### Used to both create Award Concept(Grammy for Album of the Year) ###
 ### * name, classification
@@ -111,7 +128,9 @@ my_ns:MusicAlbum a schema:Class ;
 ###                   musicalEntity = Musical_Entity_Node_i,
 ###                   musicalWork = Creative_Work_Node_j,
 ###                   winner = False
-my_ns:MusicAward a schema:Class ;
+
+#uri:name-classification-year or name-classification-year-Musical_Entity_Node_i-
+my_ns:MusicAward a schema:Class ; # award data
     rdfs:subClassOf dbo:Award ;
     schema:name xsd:string ;
     dbo:classification xsd:string ;
@@ -121,41 +140,41 @@ my_ns:MusicAward a schema:Class ;
     my_ns:musicWork schema:CreativeWork ;
     my_ns:winner xsd:boolean .
 
-my_ns:CoMusicalEntity a schema:Class ;
-    rdfs:subClassOf schema:Thing ;
-    my_ns:musicalEntity my_ns:MusicalEntity ;
-    my_ns:coAppearanceCount xsd:int .
-
-my_ns:YearlyTouringInformation a schema:Class ;
+# uri: artist-year
+my_ns:YearlyTouringInformation a schema:Class ; #songkick
     rdfs:subClassOf schema:Thing ;
     dbo:year xsd:gYear ;
     my_ns:concertCount xsd:int .
 
-my_ns:BillboardTopEntry a schema:Class ;
+# uri: date-rank
+my_ns:BillboardTopEntry a schema:Class ; #Billboard data
     rdfs:subClassOf schema:Thing ;
     dbo:date xsd:date ;
     my_ns:musicalEntity my_ns:MusicalEntity ;
     my_ns:musicWork schema:CreativeWork ;
     dbo:rank xsd:string .
 
-my_ns:LiveReview a schema:Class
+# uri: musicalEntity-count_in_array
+my_ns:LiveReview a schema:Class #songkick
     rdfs:subClassOf schema:Review ;
     schema:reviewBody xsd:string ;
     my_ns:musicalEntity my_ns:MusicalEntity ;
 
-my_ns:AggregateLiveReview a schema:Class
+# uri: musicalEntity-LivePerformanceReview <-
+my_ns:AggregateLiveReview a schema:Class #you can create everything, but the summary
     rdfs:subClassOf schema:AggregateRating ;
     my_ns:summary xsd:string ;
-    my_ns:sentimentClass xsd:string ;
-    my_ns:sentimentZScore xsd:float ;
+    my_ns:sentimentClass xsd:string ; #nlp_data/z_score_sentiment
+    my_ns:sentimentZScore xsd:float ; #nlp_data/z_score_sentiment
     my_ns:topAdjective my_ns:TopAdjective ;
     my_ns:musicalEntity my_ns:MusicalEntity .
 
+# uri: artist-name
 my_ns:TopAdjective a schema:Class ;
     rdfs:subClassOf schema:Thing ;
-    schema:name xsd:string ;
-    dbo:rank xsd:string ;
-    my_ns:tfIDF xsd:float .
+    schema:name xsd:string ; #nlp_data/top_adj_sg_url.p
+    dbo:rank xsd:string ; #nlp_data/top_adj_sg_url.p
+    my_ns:tfIDF xsd:float . #nlp_data/top_adj_sg_url.p
 
 
 ### Supporting Class New Properites ### 
@@ -166,10 +185,6 @@ my_ns:musicalEntity a rdf:Property ;
 my_ns:musicWork a rdf:Property ;
     rdfs:domain schema:Thing ;
     rdfs:range schema:CreativeWork .
-
-my_ns:coAppearanceCount a rdf:Property ;
-    rdfs:domain schema:CoMusicalEntity ;
-    rdfs:range my_ns:int .
 
 my_ns:concertCount a rdf:Property ;
     rdfs:domain schema:CoMusicalEntity ;
