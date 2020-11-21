@@ -1,0 +1,23 @@
+PREFIX fo: <http://www.w3.org/1999/XSL/Format#>
+PREFIX my: <http://www.mobile.com/model/>
+PREFIX sc: <http://purl.org/science/owl/sciencecommons/>
+
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+prefix xsd: <http://www.w3.org/2001/XMLSchema#> 
+prefix foaf: <http://xmlns.com/foaf/spec/> 
+prefix schema: <http://schema.org/> 
+prefix dbo: <http://dbpedia.org/ontology/> 
+prefix my_ns: <http://dsci558.org/rahul-zerui-project/> 
+
+SELECT ?subject ?zscore ?adj_name
+WHERE {
+
+  ?subject a my_ns:AggregateLiveReview ;
+           my_ns:sentimentZScore ?zscore ; 
+           my_ns:musicalEntity [ schema:name 'Taylor Swift' ] ;
+  		   my_ns:topAdjective [ schema:name ?adj_name; dbo:rank ?rank ] .
+  FILTER( ?rank <= '9' )
+
+}
+LIMIT 10
