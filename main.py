@@ -152,7 +152,7 @@ WHERE {
       my_ns:songKickRank ?rank;
       my_ns:playsOftenIn [ schema:name ?city];
       dbo:genre [schema:name ?genre] ;
-  	  foaf:gender ?gender;
+  	  my_ns:gender ?gender;
       schema:activeYearsStartYear ?start_year;
       my_ns:isBand ?is_band;
       my_ns:wikipediaUrl ?wikiurl;
