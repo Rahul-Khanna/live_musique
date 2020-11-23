@@ -23,7 +23,7 @@ def main():
                         type=int,
                         help="Total batch size for eval.")
     parser.add_argument("--learning_rate",
-                        default=1e-5,
+                        default=1e-3,
                         type=float,
                         help="The initial learning rate for Adam.")
     parser.add_argument("--epochs",
@@ -40,11 +40,11 @@ def main():
                         help="where to save the model")
     parser.add_argument('--embedding_dim',
                         type=int,
-                        default=300,
+                        default=500,
                         help="initial embedding dim")
     parser.add_argument('--compressed_dim',
                         type=int,
-                        default=250,
+                        default=400,
                         help="compressed embedding dim")
     parser.add_argument('--final_dim',
                         type=int,

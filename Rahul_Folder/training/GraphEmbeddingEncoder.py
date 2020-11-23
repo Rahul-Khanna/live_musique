@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class GraphEmbeddingEncoder(nn.Module):
-    def __init__(self, emb_weight, emb_dim=400, compressed_dim=300, final_dim=100, embedding_dropout_pct=0.2):
+    def __init__(self, emb_weight, emb_dim=500, compressed_dim=400, final_dim=100, embedding_dropout_pct=0.2):
         self.embedding_dropout_pct = embedding_dropout_pct
         self.emb_dim = emb_dim
         self.compressed_dim = compressed_dim
