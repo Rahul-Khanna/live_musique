@@ -37,5 +37,5 @@ for i, key in enumerate(artist_reviews):
     summary_dictionary[key]["summary"] = summary_text[i]
 
 
-with open("../Rahul_Folder/nlp_data/summary.p", "wb") as f:
+with open("nlp_data/summary.p", "wb") as f:
     pickle.dump(summary_dictionary, f)
