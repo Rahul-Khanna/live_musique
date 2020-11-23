@@ -34,7 +34,7 @@ for i in tqdm.tqdm(range(0, len(src_text), batch_size)):
 
 summary_dictionary = {}
 for i, key in enumerate(artist_reviews):
-    summary_dictionary[key]["summary"] = summary_text[i]
+    summary_dictionary[key] = {"summary" : summary_text[i]}
 
 
 with open("nlp_data/summary.p", "wb") as f:
