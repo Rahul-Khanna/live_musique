@@ -106,7 +106,6 @@ my_ns:Single a schema:Class ;
     schema:name xsd:string ; #musicbrainz
     schema:dateCreated schema:Date ; #musicbrainz
     schema:byArtist my_ns:MusicalEntity ;
-    my_ns:wikipediaUrl xsd:string ;  # from award data (if there's a match)
     my_ns:musicBrainzId xsd:string . #musicbrainz
 
 # URI: musicBrainzId
@@ -115,7 +114,6 @@ my_ns:MusicAlbum a schema:Class ;
     schema:name xsd:string ; #musicbrainz
     schema:dateCreated schema:Date ; #musicbrainz
     schema:byArtist my_ns:MusicalEntity ;
-    my_ns:wikipediaUrl xsd:string ; # from award data (if there's a match)
     my_ns:musicBrainzId xsd:string . #musicbrainz
 
 ### Used to both create Award Concept(Grammy for Album of the Year) ###
