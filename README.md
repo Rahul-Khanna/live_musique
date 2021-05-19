@@ -12,6 +12,7 @@ Key Concepts: Knowledge Graphs (KG), KG Embeddings, Triplet Loss, Peaguses Summa
 * training -- ipython notebooks used to create dataset for training of embeddings and then compressing of embeddings. 
     - base_embedding_driver.py -- creates initial artist embeddings using ComplEx method
     - EmbeddingDriver.py -- pushes similar artists together via a triplet loss, also compresses dimensionality of artist embeddings
+* reports -- reports created for class
 
 ### Authors
 
